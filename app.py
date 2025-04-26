@@ -3,9 +3,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import RobertaTokenizerFast, RobertaModel
+from huggingface_hub import hf_hub_download
 import praw
 from fastapi import FastAPI
 
+# Initialize FastAPI app
 app = FastAPI()
 
 # Set device
@@ -50,8 +52,13 @@ class DepressionClassifier(nn.Module):
         x = self.dropout(F.relu(self.fc1(combined)))
         return torch.sigmoid(self.out(x))
 
+# Download model from Hugging Face
+MODEL_PATH = hf_hub_download(
+    repo_id="ren0212/depression-detection-model",
+    filename="depressionff_classifier.pth"
+)
+
 # Load model
-MODEL_PATH = "./depressionff_classifier.pth"
 model = DepressionClassifier().to(device)
 model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 model.eval()
@@ -63,7 +70,7 @@ reddit = praw.Reddit(
     user_agent=REDDIT_USER_AGENT
 )
 
-# Function to classify
+# Function to classify text
 def classify_text(text):
     encoding = tokenizer(
         text,
@@ -102,11 +109,3 @@ def classify_subreddit(subreddit_name: str, limit: int = 10):
             "url": post.url
         })
     return results
-
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello World!"}
