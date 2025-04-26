@@ -102,3 +102,11 @@ def classify_subreddit(subreddit_name: str, limit: int = 10):
             "url": post.url
         })
     return results
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello World!"}
